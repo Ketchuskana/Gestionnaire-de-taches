@@ -1,99 +1,78 @@
 import React, { useState } from "react";
-import TaskFactory from "./TaskFactory";
+import TaskForm from "./TaskForm";
+import TaskList from "./TaskList";
 import NotificationSystem from "./NotificationSystem";
-import SortStrategy from "./SortStrategy";
 
 function TaskManager() {
   const [tasks, setTasks] = useState([]);
-  const [sortMethod, setSortMethod] = useState("default");
+  const [sortOption, setSortOption] = useState(null); // Null, 'alphabetical', or 'status'
 
+  // Ajouter une tâche
   const addTask = (title, description) => {
-    const newTask = TaskFactory.createTask(title, description);
+    const newTask = {
+      id: tasks.length + 1,
+      title,
+      description,
+      completed: false, // Initial status is "not completed"
+    };
     setTasks([...tasks, newTask]);
-    NotificationSystem.notify("Tâche ajoutée !");
+    NotificationSystem.notify("Tâche ajoutée avec succès !");
   };
 
+  // Supprimer une tâche
   const removeTask = (id) => {
     setTasks(tasks.filter((task) => task.id !== id));
     NotificationSystem.notify("Tâche supprimée !");
   };
 
-  const toggleTaskCompletion = (id) => {
+  // Marquer une tâche comme terminée
+  const completeTask = (id) => {
     setTasks(
       tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.id === id ? { ...task, completed: true } : task
       )
     );
-    NotificationSystem.notify("Tâche mise à jour !");
+    NotificationSystem.notify("Tâche marquée comme terminée !");
   };
 
-  const sortedTasks =
-    sortMethod === "completed"
-      ? SortStrategy.sortByCompletion(tasks)
-      : sortMethod === "alphabetical"
-      ? SortStrategy.sortAlphabetically(tasks)
-      : tasks;
+  // Trier par ordre alphabétique
+  const sortAlphabetically = () => {
+    setSortOption("alphabetical");
+    setTasks([
+      ...tasks.sort((a, b) => a.title.localeCompare(b.title)),
+    ]);
+  };
+
+  // Trier par statut (les tâches terminées en bas)
+  const sortByStatus = () => {
+    setSortOption("status");
+    setTasks([
+      ...tasks.sort((a, b) => a.completed - b.completed),
+    ]);
+  };
 
   return (
     <div>
-      <h1>Gestionnaire de Tâches</h1>
-      <button onClick={() => setSortMethod("completed")}>Tri par statut</button>
-      <button onClick={() => setSortMethod("alphabetical")}>Tri alphabétique</button>
       <TaskForm onAddTask={addTask} />
+      
+      <div className="d-flex justify-content-between mb-3">
+        <button
+          className="btn btn-secondary"
+          onClick={sortAlphabetically}
+        >
+          Trier par ordre alphabétique
+        </button>
+        <button className="btn btn-secondary" onClick={sortByStatus}>
+          Trier par statut
+        </button>
+      </div>
+
       <TaskList
-        tasks={sortedTasks}
+        tasks={tasks}
         onRemoveTask={removeTask}
-        onToggleCompletion={toggleTaskCompletion}
+        onCompleteTask={completeTask}
       />
     </div>
-  );
-}
-
-function TaskForm({ onAddTask }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onAddTask(title, description);
-    setTitle("");
-    setDescription("");
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="Titre"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      <button type="submit">Ajouter</button>
-    </form>
-  );
-}
-
-function TaskList({ tasks, onRemoveTask, onToggleCompletion }) {
-  return (
-    <ul>
-      {tasks.map((task) => (
-        <li key={task.id}>
-          <span style={{ textDecoration: task.completed ? "line-through" : "none" }}>
-            {task.title} - {task.description}
-          </span>
-          <button onClick={() => onToggleCompletion(task.id)}>
-            {task.completed ? "Non terminé" : "Terminé"}
-          </button>
-          <button onClick={() => onRemoveTask(task.id)}>Supprimer</button>
-        </li>
-      ))}
-    </ul>
   );
 }
 
