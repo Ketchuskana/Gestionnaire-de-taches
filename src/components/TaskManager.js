@@ -5,7 +5,7 @@ import NotificationSystem from "./NotificationSystem";
 
 function TaskManager() {
   const [tasks, setTasks] = useState([]);
-  const [sortOption, setSortOption] = useState(null); // Null, 'alphabetical', or 'status'
+  const [sortOption, setSortOption] = useState(null);
 
   // Ajouter une tâche
   const addTask = (title, description) => {
@@ -13,7 +13,7 @@ function TaskManager() {
       id: tasks.length + 1,
       title,
       description,
-      completed: false, // Initial status is "not completed"
+      completed: false, 
     };
     setTasks([...tasks, newTask]);
     NotificationSystem.notify("Tâche ajoutée avec succès !");
